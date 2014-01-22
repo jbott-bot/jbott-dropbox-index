@@ -249,12 +249,31 @@ def get_filetype(file_name):
     return ''
 
 
-def html_render(path, back, dirs, files, template_file=None):
+def html_render(path, back, dirs, files, template_file=None, force=False):
     global PATH
     PATH = os.path.basename(os.path.realpath(path))
 
-    index = open(os.path.join(path, 'index.html'), 'w')
-    
+    indexfile = os.path.join(path, 'index.html')
+
+    if not force:
+        allfilesdirs = files + dirs
+
+        if allfilesdirs: 
+            latestmodified = max(files + dirs, key=os.path.getmtime)
+            latestmodifiedfile = os.path.join(path, latestmodified)
+
+            # print "test : %s " % dirs
+            #print "last modified: %s " % latestmodified
+            if os.path.exists(indexfile) and (os.path.getmtime(indexfile) > os.path.getmtime(latestmodified)):
+                #print "%s is newest. Skipping %s" % (indexfile,os.path.realpath(path))
+                return False
+        
+        elif os.path.exists(indexfile):
+            #print "Empty dir and index.html already present. Skipping %s " % os.path.realpath(path)
+            return False
+
+    index = open(indexfile, 'w')
+
     if template_file:
         template = open(template_file, 'r').read()
         head_start = template.find('<head>') + 6
@@ -302,10 +321,11 @@ def html_render(path, back, dirs, files, template_file=None):
     else:
         index.write(HTML_DIR_INFO % {'DIR_INFO': dir_info or ''})
         index.write(HTML_END)
-    
+
+    return True
    
 
-def crawl(path, back=None, recursive=False, template_file=None):
+def crawl(path, back=None, recursive=False, template_file=None,force=False):
     if not os.path.exists(path):
         print 'ERROR: Path %s does not exists' % path
         return
@@ -332,13 +352,14 @@ def crawl(path, back=None, recursive=False, template_file=None):
         dirs = [];
     
     # render directory contents
-    html_render(path, back, dirs, files, template_file)
-
-    print 'Created index.html for %s' % os.path.realpath(path)
-
+    if html_render(path, back, dirs, files, template_file,force):
+        print 'Created index.html for %s' % os.path.realpath(path)
+    else:
+        print 'Skipped index.html for %s' % os.path.realpath(path)
+        
     # crawl subdirectories
     for dir in dirs:
-        crawl(dir, path, recursive, template_file)
+        crawl(dir, path, recursive, template_file,force)
     
 
 
@@ -356,6 +377,9 @@ Script will overwrite any existing index.html file(s)!
                       help='Include subdirectories [default: %default]')
     parser.add_option('-T', '--template', 
                       help='Use HTML file as template')
+    parser.add_option('-F', '--force', 
+                      action='store_true', default=False,
+                      help='Force generation of index.html (without force generation only happens if dir has new content)')
     
     options, args = parser.parse_args()
     if not args:
@@ -364,7 +388,8 @@ Script will overwrite any existing index.html file(s)!
     
     crawl(path=args[0], 
           recursive=options.recursive, 
-          template_file=options.template)
+          template_file=options.template,
+          force=options.force)
 
 if __name__ == '__main__':
     run()
