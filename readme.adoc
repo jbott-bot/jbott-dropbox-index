@@ -1,0 +1,9 @@
+= dropbox-index.py
+
+This is a fork of DropBoxIndex[http://code.google.com/p/kosciak-misc/wiki/DropboxIndex]
+to be used with jbott. Fixes/changes made to make it more efficient with large ever updating
+filesystems/directories.
+
+Changes:
+ * Only generate index files if index.html is older than any file/folder in the dir
+ * Use --force or -F to override
