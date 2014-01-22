@@ -1,6 +1,6 @@
 = dropbox-index.py
 
-This is a fork of DropBoxIndex[http://code.google.com/p/kosciak-misc/wiki/DropboxIndex]
+This is a fork of http://code.google.com/p/kosciak-misc/wiki/DropboxIndex[DropBoxIndex]
 to be used with jbott. Fixes/changes made to make it more efficient with large ever updating
 filesystems/directories.
 
